@@ -10,23 +10,23 @@ app.use(cors());
 const users = [];
 
 function checksExistsUserAccount(request, response, next) {
-  const { username } = request.headers;
+  const { username } = request.headers
+
   const user = users.find(user => user.username === username)
 
   if (!user) {
-    return response.status(404).json({ message: "User already exists" })
+    return response.status(404).json({ message: "User not exists" })
   }
 
-  request.username = user
+  request.user = user
   return next();
-
 }
 function checksCreateTodosUserAvailability(request, response, next) {
   const { user } = request;
 
   if (user.pro) {
     return next();
-  }else if (!user.pro && user.todos.length + 1 < 10) {
+  } else if (!user.pro && user.todos.length + 1 <= 10) {
     return next();
   }
   return response.status(403).json({ message: "You've reached the max of Todos, please upgrade your plan" })
@@ -39,17 +39,18 @@ function checksTodoExists(request, response, next) {
   const { id: todoID } = request.params;
 
   const user = users.find(user => user.username === username)
+
   if (!user) {
     return response.status(404).json({ error: "User not found" })
   }
   if (!validate(todoID)) {
-    return response.status(404).send()
+    return response.status(400).json({ error: "User ID is incorrect" })
   }
+  const userTodo = user.todos.find(todo => todo.id === todoID)
 
-  const userTodo = user.todos.some(todo => todo.id === todoID)
-if(!userTodo){
-  return response.status(400).json({error: "Todo not found"})
-}
+  if (!userTodo) {
+    return response.status(404).json({ error: "Todo not found" })
+  }
   request.todo = userTodo
   request.user = user
 
